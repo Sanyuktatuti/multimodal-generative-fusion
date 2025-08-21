@@ -1,0 +1,12 @@
+
+env:
+  provider: sdxl_triposr
+  version: "1.0.0"
+motion:
+  provider: mdm_base
+  version: "0.9.0"
+audio:
+  provider: musicgen_small
+  version: "1.1.0"
+router:
+  heavy_path_enabled: false
