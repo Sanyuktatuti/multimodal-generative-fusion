@@ -1,0 +1,11 @@
+# Virtual environment
+venv/
+.venv/
+ENV/
+env/
+
+# Node
+node_modules/
+apps/viewer/.next/
+apps/viewer/.vercel/
+
