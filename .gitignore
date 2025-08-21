@@ -9,3 +9,26 @@ node_modules/
 apps/viewer/.next/
 apps/viewer/.vercel/
 
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+# Environments
+.env
+.env.*
+!.env.example
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+# Docker
+.docker/
+docker-data/
