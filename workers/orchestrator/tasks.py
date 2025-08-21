@@ -69,10 +69,11 @@ def run_pipeline(job_id: str, prompt: str) -> None:
     with open(plan_path, "w") as f:
         f.write(plan.model_dump_json())
     _set_status(r, job_id, "planned", detail={"plan_path": plan_path})
-    _set_status(r, job_id, "env_gen")
+    _set_status(r, job_id, "env_gen", detail={"plan_path": plan_path})
     try:
-        scene_path = run_env.delay(job_id, plan_path).get(timeout=60)
+        async_result = run_env.delay(job_id, plan_path)
+        # Do not block within task; env worker will update status to env_done
+        _set_status(r, job_id, "env_queued", detail={"task_id": async_result.id})
     except Exception as e:
         _set_status(r, job_id, "error", detail={"stage": "env_gen", "message": str(e)})
         return
-    _set_status(r, job_id, "done", detail={"scene_glb": scene_path})
