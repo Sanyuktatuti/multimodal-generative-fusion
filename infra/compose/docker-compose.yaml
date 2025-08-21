@@ -1,0 +1,24 @@
+version: "3.9"
+services:
+  api:
+    build: ../..
+    command: uvicorn apps.api.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ../..:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+
+  worker:
+    build: ../..
+    command: celery -A workers.orchestrator.tasks worker --loglevel=INFO
+    volumes:
+      - ../..:/app
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:6
+    ports:
+      - "6379:6379"
