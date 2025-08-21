@@ -1,6 +1,5 @@
 
 from pydantic import BaseModel, Field
-from pydantic.types import conlist
 from pydantic.functional_validators import field_validator
 from typing import List, Optional, Literal
 
@@ -31,12 +30,7 @@ class AudioSpec(BaseModel):
 
 class ScenePlan(BaseModel):
     environment: EnvSpec
-    objects: conlist(ObjectSpec, min_items=0, max_items=20) = []
+    objects: List[ObjectSpec] = Field(default_factory=list, min_length=0, max_length=20)
     character: Optional[CharacterSpec] = None
     camera: CameraSpec
     audio: AudioSpec
-
-    @field_validator("objects", mode="before")
-    @classmethod
-    def limit_objects(cls, v):
-        return v or []
