@@ -12,6 +12,8 @@ services:
       - redis
     env_file:
       - ../../.env
+    environment:
+      - JOB_TMP_DIR=/app/tmp
 
   worker:
     build: ../..
@@ -23,6 +25,8 @@ services:
       - redis
     env_file:
       - ../../.env
+    environment:
+      - JOB_TMP_DIR=/app/tmp
 
   env_worker:
     build: ../..
@@ -34,6 +38,8 @@ services:
       - redis
     env_file:
       - ../../.env
+    environment:
+      - JOB_TMP_DIR=/app/tmp
 
   redis:
     image: redis:6
