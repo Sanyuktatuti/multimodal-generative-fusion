@@ -14,7 +14,17 @@ services:
 
   worker:
     build: ../..
-    command: celery -A workers.orchestrator.tasks worker --loglevel=INFO
+    command: celery -A workers.orchestrator.tasks worker -Q orchestrator --loglevel=INFO
+    volumes:
+      - ../..:/app
+    depends_on:
+      - redis
+    env_file:
+      - ../../.env
+
+  env_worker:
+    build: ../..
+    command: celery -A workers.env_gen.tasks worker -Q env --loglevel=INFO
     volumes:
       - ../..:/app
     depends_on:
