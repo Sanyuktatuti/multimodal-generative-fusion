@@ -5,6 +5,7 @@ services:
     command: uvicorn apps.api.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - ../..:/app
+      - ../../tmp:/app/tmp
     ports:
       - "8000:8000"
     depends_on:
@@ -17,6 +18,7 @@ services:
     command: celery -A workers.orchestrator.tasks worker -Q orchestrator --loglevel=INFO
     volumes:
       - ../..:/app
+      - ../../tmp:/app/tmp
     depends_on:
       - redis
     env_file:
@@ -27,6 +29,7 @@ services:
     command: celery -A workers.env_gen.tasks worker -Q env --loglevel=INFO
     volumes:
       - ../..:/app
+      - ../../tmp:/app/tmp
     depends_on:
       - redis
     env_file:
