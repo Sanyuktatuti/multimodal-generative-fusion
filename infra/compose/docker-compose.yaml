@@ -29,7 +29,9 @@ services:
       - JOB_TMP_DIR=/app/tmp
 
   env_worker:
-    build: ../..
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.gpu
     command: celery -A workers.env_gen.tasks worker -Q env --loglevel=INFO
     volumes:
       - ../..:/app
