@@ -6,10 +6,12 @@ import os
 import redis
 from dotenv import load_dotenv
 from workers.orchestrator.tasks import run_pipeline
+from apps.api.routes import planning
 
 load_dotenv()
 
 app = FastAPI(title="Multimodal Fusion API", version="0.1.0")
+app.include_router(planning.router)
 
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
@@ -45,5 +47,16 @@ def create_generation(req: JobRequest):
 
 @app.get("/v1/generations/{job_id}/status")
 def get_status(job_id: str):
-    status = redis_client.get(job_id)
-    return {"job_id": job_id, "status": status or "unknown"}
+    raw = redis_client.get(job_id)
+    if not raw:
+        return {"job_id": job_id, "status": "unknown"}
+    # Support both simple string status and structured JSON
+    if raw.startswith("{"):
+        try:
+            import json as _json
+            data = _json.loads(raw)
+            data["job_id"] = job_id
+            return data
+        except Exception:
+            pass
+    return {"job_id": job_id, "status": raw}
