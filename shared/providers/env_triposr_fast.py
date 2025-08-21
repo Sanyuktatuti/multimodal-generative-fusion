@@ -7,7 +7,13 @@ class Env_TripoSR_Fast(EnvGenerator):
         """
         Fast path stub: returns a placeholder GLB path.
         """
-        fake_path = f"/tmp/{uuid.uuid4()}_scene.glb"
+        import os
+        base_tmp_dir = os.getenv("JOB_TMP_DIR", "/app/tmp")
+        try:
+            os.makedirs(base_tmp_dir, exist_ok=True)
+        except Exception:
+            pass
+        fake_path = f"{base_tmp_dir}/{uuid.uuid4()}_scene.glb"
         with open(fake_path, "wb") as f:
             f.write(b"glTF-stub")
         return {

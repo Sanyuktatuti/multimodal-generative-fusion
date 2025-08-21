@@ -65,7 +65,12 @@ def run_pipeline(job_id: str, prompt: str) -> None:
     except Exception as e:
         _set_status(r, job_id, "error", detail={"stage": "planning", "message": str(e)})
         return
-    plan_path = f"/tmp/{job_id}_plan.json"
+    base_tmp_dir = os.getenv("JOB_TMP_DIR", "/app/tmp")
+    try:
+        os.makedirs(base_tmp_dir, exist_ok=True)
+    except Exception:
+        pass
+    plan_path = f"{base_tmp_dir}/{job_id}_plan.json"
     with open(plan_path, "w") as f:
         f.write(plan.model_dump_json())
     _set_status(r, job_id, "planned", detail={"plan_path": plan_path})
