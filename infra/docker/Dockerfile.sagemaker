@@ -17,7 +17,7 @@ WORKDIR /opt/ml/code
 COPY infra/docker/requirements.sagemaker.txt /opt/ml/code/requirements.txt
 RUN pip3 install --upgrade pip && pip3 install -r requirements.txt \
     && pip3 install --extra-index-url https://download.pytorch.org/whl/cu121 \
-    torch torchvision torchaudio
+       torch torchvision torchaudio
 
 # Copy your app code
 COPY . /opt/ml/code
@@ -26,9 +26,9 @@ COPY . /opt/ml/code
 RUN git clone https://github.com/facebookresearch/TripoSR.git /opt/TripoSR 2>/dev/null || \
     (echo "TripoSR repository not accessible, will use fallback mode" && mkdir -p /opt/TripoSR)
 
-# Try to install TripoSR if available
+# Try to install TripoSR if available (with better error handling)
 RUN if [ -f /opt/TripoSR/setup.py ]; then \
-        cd /opt/TripoSR && pip install -e .; \
+        cd /opt/TripoSR && pip install -e . || echo "TripoSR install failed, will use fallback"; \
     else \
         echo "TripoSR not available, will use fallback mode"; \
     fi

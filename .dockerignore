@@ -1,0 +1,53 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+ENV/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+apps/viewer/.next/
+apps/viewer/.vercel/
+
+# Temporary files
+tmp/
+*.tmp
+*.log
+proc*.json
+
+# Documentation
+docs/
+*.md
+scrum.md
+Deployment-Topology-Scaling-and-Guardrails.md
+Layered-Component-Architecture.md
+Response-Sequence-(single generation).md
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.docker/
+docker-data/
