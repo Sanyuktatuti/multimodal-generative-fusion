@@ -2,6 +2,7 @@ import os
 import json
 import tempfile
 import uuid
+import sys
 from pathlib import Path
 
 import boto3
@@ -22,6 +23,9 @@ def main() -> None:
 
     # --- REAL PIPELINE: Use actual environment generator ---
     try:
+        # Add current directory to Python path
+        sys.path.insert(0, '/opt/ml/code')
+        
         from shared.providers.factory import get_provider
         
         # Create a minimal scene plan from the prompt
