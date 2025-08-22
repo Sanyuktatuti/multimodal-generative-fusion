@@ -7,7 +7,8 @@ import redis
 from dotenv import load_dotenv
 from shared.schemas.scene_plan import ScenePlan
 from apps.api.services.planner_client import PlannerOrchestrator, PlannerProviderError
-from workers.env_gen.tasks import run_env
+# Lazy import to avoid circular dependencies
+# from workers.env_gen.tasks import run_env
 
 load_dotenv()
 
@@ -76,7 +77,9 @@ def run_pipeline(job_id: str, prompt: str) -> None:
     _set_status(r, job_id, "planned", detail={"plan_path": plan_path})
     _set_status(r, job_id, "env_gen", detail={"plan_path": plan_path})
     try:
-        async_result = run_env.delay(job_id, plan_path)
+        # Lazy import to avoid circular dependencies
+        from workers.env_gen.tasks import run_env
+        async_result = run_env.delay(job_id, plan_path, "stub", "0.1.0")
         # Do not block within task; env worker will update status to env_done
         _set_status(r, job_id, "env_queued", detail={"task_id": async_result.id})
     except Exception as e:
