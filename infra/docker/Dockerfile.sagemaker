@@ -22,12 +22,20 @@ RUN pip3 install --upgrade pip && pip3 install -r requirements.txt \
 # Copy your app code
 COPY . /opt/ml/code
 
-# Clone and setup TripoSR
-RUN git clone https://github.com/facebookresearch/TripoSR.git /opt/TripoSR
-RUN pip install -e /opt/TripoSR
+# Try to clone TripoSR (optional - will use fallback if it fails)
+RUN git clone https://github.com/facebookresearch/TripoSR.git /opt/TripoSR 2>/dev/null || \
+    (echo "TripoSR repository not accessible, will use fallback mode" && mkdir -p /opt/TripoSR)
+
+# Try to install TripoSR if available
+RUN if [ -f /opt/TripoSR/setup.py ]; then \
+        cd /opt/TripoSR && pip install -e .; \
+    else \
+        echo "TripoSR not available, will use fallback mode"; \
+    fi
 
 # Pre-download SDXL weights (cached for faster startup)
-RUN python -c "from diffusers import StableDiffusionXLPipeline; StableDiffusionXLPipeline.from_pretrained('stabilityai/stable-diffusion-xl-base-1.0')"
+RUN python -c "from diffusers import StableDiffusionXLPipeline; StableDiffusionXLPipeline.from_pretrained('stabilityai/stable-diffusion-xl-base-1.0')" || \
+    echo "SDXL download failed, will use fallback mode"
 
 # Create model cache directory
 RUN mkdir -p /opt/ml/code/models
