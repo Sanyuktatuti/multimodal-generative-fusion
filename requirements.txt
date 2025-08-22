@@ -1,20 +1,36 @@
 fastapi==0.115.2
 uvicorn[standard]==0.30.6
-pydantic==2.9.2
+
+# Use Pydantic v1 to match our current code (validators + .schema())
+pydantic==1.10.13
+
 celery==5.4.0
 redis==5.0.7
 python-dotenv==1.0.1
-pyyaml
-httpx
-tenacity
+pyyaml==6.0.2
+httpx==0.27.2
+tenacity==8.5.0
+
+# LLM planner clients
 openai>=1.30.0
 anthropic>=0.30.0
-diffusers[torch]
-transformers
-accelerate
-safetensors
-pillow
-trimesh
-pymeshlab
-numpy
-pygltflib
+
+# AWS SDK (needed locally to submit SageMaker jobs)
+boto3==1.34.162
+
+# Generative libs
+diffusers[torch]==0.29.0
+transformers==4.43.3
+accelerate==0.33.0
+safetensors==0.4.3
+pillow==10.4.0
+
+# 3D & export
+trimesh==4.4.9
+pymeshlab==2023.12.post2
+numpy==1.26.4
+pygltflib==1.16.6
+
+# Torch (CPU build here; GPU build handled in CUDA Dockerfile)
+torch==2.2.2
+torchvision==0.17.2

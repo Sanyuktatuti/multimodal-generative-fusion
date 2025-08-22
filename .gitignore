@@ -19,16 +19,33 @@ __pycache__/
 .ruff_cache/
 .coverage
 htmlcov/
+
 # Environments
 .env
 .env.*
 !.env.example
+
 # OS/editor
 .DS_Store
 .idea/
 .vscode/
 *.swp
 *.swo
+
 # Docker
 .docker/
 docker-data/
+
+# Temporary files and test configurations
+tmp/
+proc*.json
+*.tmp
+*.log
+
+# SageMaker test files (not core code)
+proc.json
+proc.filled.json
+proc.cpu.json
+proc.cpu_new.json
+proc.beach.json
+proc.t3.json
