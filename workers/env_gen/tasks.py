@@ -17,7 +17,7 @@ def set_status(job_id, status, detail=None):
 
 
 @app.task(queue="env")
-def run_env(job_id, plan_path, provider_name="sdxl_triposr", version="0.1.0"):
+def run_env(job_id, plan_path, provider_name="stub", version="0.1.0"):
     from shared.schemas.scene_plan import ScenePlan
     with open(plan_path) as f:
         raw = json.load(f)
