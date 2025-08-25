@@ -6,9 +6,16 @@ PORT=${PORT:-8000}
 
 echo "=== RAILWAY DEPLOYMENT DEBUG ==="
 echo "PORT environment variable: $PORT"
-echo "All environment variables:"
-env | grep -E "(PORT|RAILWAY)" || echo "No PORT/RAILWAY vars found"
+echo "Python version: $(python --version)"
+echo "Working directory: $(pwd)"
+echo "Python path: $PYTHONPATH"
+echo "Directory contents:"
+ls -la
 echo "================================"
+
+echo "Testing Python imports..."
+python -c "import sys; print('Python sys.path:', sys.path)" || echo "Python import failed"
+python -c "import apps.api.main; print('Main app import successful')" || echo "Main app import failed"
 
 echo "Starting uvicorn on host 0.0.0.0 port $PORT"
 exec uvicorn apps.api.main:app --host 0.0.0.0 --port $PORT
