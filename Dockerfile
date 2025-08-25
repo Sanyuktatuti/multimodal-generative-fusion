@@ -39,5 +39,5 @@ USER appuser
 # Expose port
 EXPOSE 8000
 
-# Start command
-CMD ["uvicorn", "apps.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start command - Railway provides PORT env var
+CMD ["sh", "-c", "uvicorn apps.api.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
