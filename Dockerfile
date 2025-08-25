@@ -32,6 +32,10 @@ COPY shared/ shared/
 COPY workers/__init__.py workers/__init__.py
 COPY workers/env_gen/__init__.py workers/env_gen/__init__.py
 
+# Copy entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Create non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
@@ -40,4 +44,4 @@ USER appuser
 EXPOSE 8000
 
 # Start command - Railway provides PORT env var
-CMD ["sh", "-c", "uvicorn apps.api.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["/entrypoint.sh"]
