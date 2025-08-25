@@ -1,6 +1,5 @@
 
-from pydantic import BaseModel, Field
-from pydantic.functional_validators import field_validator
+from pydantic import BaseModel, Field, validator
 from typing import List, Optional, Literal
 
 class EnvSpec(BaseModel):
@@ -30,7 +29,7 @@ class AudioSpec(BaseModel):
 
 class ScenePlan(BaseModel):
     environment: EnvSpec
-    objects: List[ObjectSpec] = Field(default_factory=list, min_length=0, max_length=20)
+    objects: List[ObjectSpec] = Field(default_factory=list, min_items=0, max_items=20)
     character: Optional[CharacterSpec] = None
     camera: CameraSpec
     audio: AudioSpec

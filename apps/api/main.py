@@ -6,12 +6,14 @@ import os
 import redis
 from dotenv import load_dotenv
 from workers.orchestrator.tasks import run_pipeline
-from apps.api.routes import planning
+from apps.api.routes.planning import router as planning_router
+from apps.api.routes import envgen as envgen_router
 
 load_dotenv()
 
 app = FastAPI(title="Multimodal Fusion API", version="0.1.0")
-app.include_router(planning.router)
+app.include_router(planning_router)
+app.include_router(envgen_router.router)
 
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))

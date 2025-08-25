@@ -2,6 +2,7 @@ import os
 import json
 import tempfile
 import uuid
+import sys
 from pathlib import Path
 
 import boto3
@@ -22,6 +23,18 @@ def main() -> None:
 
     # --- REAL PIPELINE: Use actual environment generator ---
     try:
+        # Ensure proper Python path for SageMaker environment
+        current_dir = Path('/opt/ml/code')
+        if str(current_dir) not in sys.path:
+            sys.path.insert(0, str(current_dir))
+        
+        # Also add parent directory for relative imports
+        parent_dir = current_dir.parent
+        if str(parent_dir) not in sys.path:
+            sys.path.insert(0, str(parent_dir))
+        
+        print(f"Python path: {sys.path[:3]}")  # Debug info
+        
         from shared.providers.factory import get_provider
         
         # Create a minimal scene plan from the prompt
@@ -44,6 +57,8 @@ def main() -> None:
     except Exception as e:
         # Fallback to stub if real pipeline fails
         print(f"Real pipeline failed: {e}, falling back to stub")
+        print(f"Exception type: {type(e).__name__}")
+        print(f"Exception details: {str(e)}")
         glb_path = tmp_dir / "scene.glb"
         glb_path.write_bytes(b"glTF-stub")
         provenance = {"pipeline": "stub-fallback", "version": "0.1.0", "error": str(e)}
