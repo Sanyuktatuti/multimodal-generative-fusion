@@ -3,9 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uuid
 import os
-import redis
 from dotenv import load_dotenv
-from workers.orchestrator.tasks import run_pipeline
 from apps.api.routes.planning import router as planning_router
 from apps.api.routes import envgen as envgen_router
 
@@ -14,14 +12,6 @@ load_dotenv()
 app = FastAPI(title="Multimodal Fusion API", version="0.1.0")
 app.include_router(planning_router)
 app.include_router(envgen_router.router)
-
-REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
-REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
-REDIS_DB = int(os.getenv("REDIS_STATUS_DB", "0"))
-
-redis_client = redis.Redis(
-    host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True
-)
 
 # Enable CORS for local dev and viewer (adjust origins as needed)
 ALLOWED_ORIGINS = os.getenv("CORS_ALLOW_ORIGINS", "*")
@@ -41,24 +31,10 @@ class JobRequest(BaseModel):
 
 @app.post("/v1/generations")
 def create_generation(req: JobRequest):
-    job_id = str(uuid.uuid4())
-    redis_client.set(job_id, "queued")
-    run_pipeline.delay(job_id, req.prompt)
-    return {"job_id": job_id, "status": "queued"}
+    # Cloud API delegates to envgen router which handles SageMaker submission
+    return {"message": "Use /v1/generations endpoint from envgen router"}
 
 
-@app.get("/v1/generations/{job_id}/status")
-def get_status(job_id: str):
-    raw = redis_client.get(job_id)
-    if not raw:
-        return {"job_id": job_id, "status": "unknown"}
-    # Support both simple string status and structured JSON
-    if raw.startswith("{"):
-        try:
-            import json as _json
-            data = _json.loads(raw)
-            data["job_id"] = job_id
-            return data
-        except Exception:
-            pass
-    return {"job_id": job_id, "status": raw}
+@app.get("/")
+def root():
+    return {"message": "Multimodal Fusion API", "version": "0.1.0", "endpoints": ["/docs", "/v1/generations"]}

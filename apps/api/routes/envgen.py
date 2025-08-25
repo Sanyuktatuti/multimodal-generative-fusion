@@ -2,7 +2,8 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 import os
 import uuid
-from workers.env_gen.tasks import run_env_cloud, app as env_app
+import json
+import boto3
 
 
 router = APIRouter(prefix="/v1/generations", tags=["envgen"])
@@ -17,23 +18,56 @@ class GenReq(BaseModel):
 @router.post("")
 def submit(req: GenReq):
     job_id = f"envgen-{uuid.uuid4().hex[:8]}"
-    r = run_env_cloud.delay(req.prompt, job_id)
-    return {"task_id": r.id, "job_id": job_id}
+    
+    # Direct SageMaker submission (cloud deployment)
+    try:
+        # Normalize out_bucket to the bucket root 
+        out_bucket = os.getenv("S3_BUCKET", "")
+        if out_bucket.startswith("s3://"):
+            bucket_part = out_bucket.replace("s3://", "", 1)
+            bucket_name = bucket_part.split("/", 1)[0]
+            out_bucket = f"s3://{bucket_name}"
+        
+        payload = {"prompt": req.prompt, "out_bucket": out_bucket, "job_id": job_id}
+        
+        sm = boto3.client("sagemaker", region_name=os.getenv("AWS_REGION", "us-east-1"))
+        sm.create_processing_job(
+            ProcessingJobName=job_id,
+            RoleArn=os.getenv("SAGEMAKER_ROLE_ARN"),
+            AppSpecification={"ImageUri": os.getenv("ECR_IMAGE_URI")},
+            Environment={
+                "PROMPT_JSON": json.dumps(payload),
+                "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY", ""),
+            },
+            ProcessingResources={
+                "ClusterConfig": {
+                    "InstanceCount": 1,
+                    "InstanceType": os.getenv("SM_INSTANCE_TYPE", "ml.m5.xlarge"),
+                    "VolumeSizeInGB": int(os.getenv("SM_VOL_GB", "50")),
+                }
+            },
+            StoppingCondition={"MaxRuntimeInSeconds": int(os.getenv("SM_MAX_SEC", "1800"))},
+        )
+        return {"task_id": job_id, "job_id": job_id, "status": "submitted"}
+    except Exception as e:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail=f"Failed to submit job: {str(e)}")
 
 
 @router.get("/{task_id}/status")
 def status(task_id: str):
-    from celery.result import AsyncResult
-    ar = env_app.AsyncResult(task_id)
-    # In containers we may have a disabled result backend; only return state
-    resp = {"state": ar.state}
+    # Cloud deployment: check SageMaker job status directly
     try:
-        res = ar.result
-        if isinstance(res, dict):
-            resp.update(res)
-    except Exception:
-        pass
-    return resp
+        sm = boto3.client("sagemaker", region_name=os.getenv("AWS_REGION", "us-east-1"))
+        response = sm.describe_processing_job(ProcessingJobName=task_id)
+        status = response["ProcessingJobStatus"]
+        return {
+            "state": "SUCCESS" if status == "Completed" else "PENDING" if status == "InProgress" else "FAILURE",
+            "job_id": task_id,
+            "sagemaker_status": status
+        }
+    except Exception as e:
+        return {"state": "UNKNOWN", "job_id": task_id, "error": str(e)}
 
 
 @router.get("/{job_id}/presigned")
