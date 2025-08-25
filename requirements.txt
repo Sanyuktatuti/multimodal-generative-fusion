@@ -27,9 +27,8 @@ pillow==10.4.0
 
 # 3D & export
 trimesh==4.4.9
-pymeshlab==2023.12.post2
 numpy==1.26.4
-pygltflib==1.16.6
+pygltflib==1.16.5
 
 # Torch (CPU build here; GPU build handled in CUDA Dockerfile)
 torch==2.2.2

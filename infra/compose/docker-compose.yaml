@@ -6,6 +6,7 @@ services:
     volumes:
       - ../..:/app
       - ../../tmp:/app/tmp
+      - ${HOME}/.aws:/root/.aws:ro
     ports:
       - "8000:8000"
     depends_on:
@@ -14,6 +15,9 @@ services:
       - ../../.env
     environment:
       - JOB_TMP_DIR=/app/tmp
+      - REDIS_HOST=redis
+      - AWS_PROFILE=mmfusion
+      - AWS_DEFAULT_REGION=us-east-1
 
   worker:
     build: ../..
@@ -27,21 +31,24 @@ services:
       - ../../.env
     environment:
       - JOB_TMP_DIR=/app/tmp
+      - REDIS_HOST=redis
 
   env_worker:
-    build:
-      context: ../..
-      dockerfile: infra/docker/Dockerfile.gpu
+    build: ../..
     command: celery -A workers.env_gen.tasks worker -Q env --loglevel=INFO
     volumes:
       - ../..:/app
       - ../../tmp:/app/tmp
+      - ${HOME}/.aws:/root/.aws:ro
     depends_on:
       - redis
     env_file:
       - ../../.env
     environment:
       - JOB_TMP_DIR=/app/tmp
+      - AWS_PROFILE=mmfusion
+      - AWS_DEFAULT_REGION=us-east-1
+      - REDIS_HOST=redis
 
   redis:
     image: redis:6

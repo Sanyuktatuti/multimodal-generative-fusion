@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MMF Manifest v0",
+  "type": "object",
+  "required": ["job_id", "prompt", "artifacts", "provenance"],
+  "properties": {
+    "job_id": { "type": "string" },
+    "prompt": { "type": "string" },
+    "artifacts": {
+      "type": "object",
+      "properties": {
+        "scene_glb": { "type": "string" },
+        "refs": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "provenance": { "type": "object" }
+  }
+}
+
