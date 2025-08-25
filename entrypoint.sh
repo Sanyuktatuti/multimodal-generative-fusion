@@ -6,11 +6,13 @@ PORT=${PORT:-8000}
 
 echo "=== RAILWAY DEPLOYMENT DEBUG ==="
 echo "PORT environment variable: $PORT"
+echo "All PORT-related environment variables:"
+env | grep -i port || echo "No PORT variables found"
 echo "Python version: $(python --version)"
 echo "Working directory: $(pwd)"
 echo "Python path: $PYTHONPATH"
-echo "Directory contents:"
-ls -la
+echo "Railway variables:"
+env | grep RAILWAY || echo "No RAILWAY variables"
 echo "================================"
 
 echo "Testing Python imports..."
