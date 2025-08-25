@@ -3,11 +3,11 @@
   "outputDirectory": ".next",
   "framework": "nextjs",
   "env": {
-    "API_BASE": "@api_base"
+    "API_BASE": "https://multimodal-generative-fusion-production.up.railway.app"
   },
   "build": {
     "env": {
-      "API_BASE": "@api_base"
+      "API_BASE": "https://multimodal-generative-fusion-production.up.railway.app"
     }
   }
 }
