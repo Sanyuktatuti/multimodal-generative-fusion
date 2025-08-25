@@ -49,9 +49,10 @@ def main() -> None:
         # Get the real environment generator
         provider = get_provider("env", "sdxl_triposr", "0.1.0", cfg={"job_root": str(tmp_dir)})
         result = provider.generate(scene_plan)
-        
-        # Extract the generated GLB path
+
+        # Extract the generated GLB path and any refs if available
         glb_path = Path(result["artifacts"]["scene_glb"])
+        refs = result.get("artifacts", {}).get("refs", []) or []
         provenance = result["provenance"]
         
     except Exception as e:
@@ -61,12 +62,13 @@ def main() -> None:
         print(f"Exception details: {str(e)}")
         glb_path = tmp_dir / "scene.glb"
         glb_path.write_bytes(b"glTF-stub")
+        refs = []
         provenance = {"pipeline": "stub-fallback", "version": "0.1.0", "error": str(e)}
 
     manifest = {
         "job_id": job_id,
         "prompt": prompt,
-        "artifacts": {"scene_glb": str(glb_path)},
+        "artifacts": {"scene_glb": str(glb_path), "refs": refs},
         "provenance": provenance,
     }
     (tmp_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
@@ -78,11 +80,19 @@ def main() -> None:
         prefix = prefix.rstrip("/")
     else:
         bucket, prefix = bucket_part, ""
-    prefix = f"{prefix}/{job_id}" if prefix else job_id
+    # Standardized layout: jobs/<job_id>/...
+    prefix = f"{prefix}/jobs/{job_id}" if prefix else f"jobs/{job_id}"
 
-    s3 = boto3.client("s3")
+    s3 = boto3.client("s3", region_name=os.getenv("AWS_REGION", "us-east-1"))
     s3.upload_file(str(glb_path), bucket, f"{prefix}/scene.glb")
     s3.upload_file(str(tmp_dir / "manifest.json"), bucket, f"{prefix}/manifest.json")
+    # Upload any reference images if produced
+    for ref_path in refs:
+        try:
+            p = Path(ref_path)
+            s3.upload_file(str(p), bucket, f"{prefix}/refs/{p.name}")
+        except Exception:
+            pass
 
     print(json.dumps({"ok": True, "s3": f"s3://{bucket}/{prefix}/"}))
 
