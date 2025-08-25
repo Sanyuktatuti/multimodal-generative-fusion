@@ -1,3 +1,1 @@
-"""Worker packages for orchestrator and pipelines."""
-
-
+# Workers package
