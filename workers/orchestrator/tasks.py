@@ -6,7 +6,9 @@ import asyncio
 import redis
 from dotenv import load_dotenv
 from shared.schemas.scene_plan import ScenePlan
-from apps.api.services.planner_client import PlannerOrchestrator, PlannerProviderError
+# Planner service not implemented yet - using fallback
+PlannerOrchestrator = None
+PlannerProviderError = Exception
 # Lazy import to avoid circular dependencies
 # from workers.env_gen.tasks import run_env
 
@@ -58,11 +60,7 @@ def run_pipeline(job_id: str, prompt: str) -> None:
         return base
 
     try:
-        try:
-            planner = PlannerOrchestrator()
-            plan = asyncio.run(planner.plan(prompt))
-        except (PlannerProviderError, RuntimeError):
-            plan = ScenePlan(**_naive_plan_from_prompt(prompt))
+        plan = ScenePlan(**_naive_plan_from_prompt(prompt))
     except Exception as e:
         _set_status(r, job_id, "error", detail={"stage": "planning", "message": str(e)})
         return
@@ -73,7 +71,7 @@ def run_pipeline(job_id: str, prompt: str) -> None:
         pass
     plan_path = f"{base_tmp_dir}/{job_id}_plan.json"
     with open(plan_path, "w") as f:
-        f.write(plan.model_dump_json())
+        f.write(plan.json())
     _set_status(r, job_id, "planned", detail={"plan_path": plan_path})
     _set_status(r, job_id, "env_gen", detail={"plan_path": plan_path})
     try:

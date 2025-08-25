@@ -13,6 +13,7 @@ Goal: Turn a validated ScenePlan into a basic 3D environment artifact (scene.glb
 ### Code map (files touched)
 
 - API
+
   - `apps/api/main.py` — mounts new envgen router
   - `apps/api/routes/envgen.py` — routes:
     - `POST /v1/generations` → submit env job (SageMaker Processing)
@@ -20,20 +21,24 @@ Goal: Turn a validated ScenePlan into a basic 3D environment artifact (scene.glb
     - `GET /v1/generations/{job_id}/presigned` → signed URLs for S3 artifacts
 
 - Workers
+
   - `workers/env_gen/tasks.py` — two tasks:
     - `run_env(job_id, plan_path, provider, version)` — local provider execution (stub/fast)
     - `run_env_cloud(prompt)` — submits SageMaker Processing job (immutable ECR image)
   - `workers/orchestrator/tasks.py` — planning stage writes plan to `/app/tmp`, enqueues env task (stub path remains available)
 
 - Providers
+
   - `shared/providers/env_triposr_fast.py` — fast path provider with lazy deps, creates GLB
   - `shared/providers/factory.py` — registers `("env", "sdxl_triposr")` and `("env","stub")`
 
 - Schemas
+
   - `shared/schemas/manifest.v0.json` — JSON Schema for job manifest
   - `shared/schemas/scene_plan.py` — Pydantic v1 compatible ScenePlan
 
 - Infra
+
   - `infra/compose/docker-compose.yaml` — mounts `/app/tmp`, sets `REDIS_HOST`, mounts `~/.aws` into API and env worker, sets `AWS_PROFILE` and region
   - `infra/sagemaker/entrypoint_processing.py` — reads `PROMPT_JSON`, writes `scene.glb` + `manifest.json`, uploads to `s3://.../jobs/<job_id>/...`
 
@@ -44,7 +49,7 @@ Goal: Turn a validated ScenePlan into a basic 3D environment artifact (scene.glb
 
 We built and pushed the SageMaker image, then locked it:
 
-1) Get digest of `:latest` and tag as `sprint2-release`:
+1. Get digest of `:latest` and tag as `sprint2-release`:
 
 ```bash
 aws ecr describe-images \
@@ -59,7 +64,7 @@ aws ecr put-image --repository-name mmf-envgen \
   --region us-east-1 --profile mmfusion
 ```
 
-2) `.env` uses the immutable tag:
+2. `.env` uses the immutable tag:
 
 ```ini
 ECR_IMAGE_URI=398341427473.dkr.ecr.us-east-1.amazonaws.com/mmf-envgen:sprint2-release
@@ -99,13 +104,13 @@ SM_MAX_SEC=1800
 
 ### API usage (local demo)
 
-1) Start services (mounts `~/.aws` for creds):
+1. Start services (mounts `~/.aws` for creds):
 
 ```bash
 docker compose -f infra/compose/docker-compose.yaml up -d api env_worker redis
 ```
 
-2) Submit a generation:
+2. Submit a generation:
 
 ```bash
 curl -s -X POST localhost:8000/v1/generations \
@@ -114,14 +119,14 @@ curl -s -X POST localhost:8000/v1/generations \
 # => {"task_id":"<id>"}
 ```
 
-3) Poll status:
+3. Poll status:
 
 ```bash
 curl -s localhost:8000/v1/generations/<task_id>/status
 # => {"state":"SUCCESS","job_id":"envgen-XXXXXXX","status":"submitted"}
 ```
 
-4) Get presigned URLs:
+4. Get presigned URLs:
 
 ```bash
 curl -s localhost:8000/v1/generations/<job_id>/presigned
@@ -141,5 +146,3 @@ curl -s localhost:8000/v1/generations/<job_id>/presigned
 - Status surfaces SUCCESS with job_id
 - Presigned URLs download `scene.glb` and `manifest.json` from S3
 - Immutable image tag `sprint2-release` configured
-
-

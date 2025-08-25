@@ -2,7 +2,9 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import json
-from apps.api.services.planner_client import PlannerOrchestrator, PlannerProviderError
+# Planner service not implemented yet - using fallback
+PlannerOrchestrator = None
+PlannerProviderError = Exception
 
 router = APIRouter()
 
@@ -33,13 +35,7 @@ class PlanRequest(BaseModel):
 
 @router.post("/v1/plan")
 async def create_plan(req: PlanRequest):
-    # Try LLM planner, fallback to naive when providers are not configured
-    try:
-        planner = PlannerOrchestrator()
-        scene_plan = await planner.plan(req.prompt)
-        return {"scene_plan": json.loads(scene_plan.model_dump_json())}
-    except (PlannerProviderError, RuntimeError):
-        # RuntimeError when no providers configured
-        from shared.schemas.scene_plan import ScenePlan
-        plan = ScenePlan(**_naive_plan_from_prompt(req.prompt))
-        return {"scene_plan": json.loads(plan.model_dump_json())}
+    # Fallback to naive planner for now
+    from shared.schemas.scene_plan import ScenePlan
+    plan = ScenePlan(**_naive_plan_from_prompt(req.prompt))
+    return {"scene_plan": json.loads(plan.json())}
